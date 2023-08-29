@@ -87,7 +87,7 @@ Function Confirm-ADSOrganizationalStructure
             {
                 If (([String]::IsNullOrEmpty($OUStructure.Filter) -or $Variables.$($OUStructure.Filter) -eq $True) -and [String]::IsNullOrEmpty($OUStructure.Optional))
                 {
-                    If ($PSCmdlet.ShouldProcess($ouName, 'New-ADOrganizationalUnit'))
+                    If ($PSCmdlet.ShouldProcess("-Name $ouName -Path $DistinguishedName -PassThru", 'New-ADOrganizationalUnit'))
                     {
                         Write-Host "[$($DistinguishedName)] $($ouName) is missing. Creating ..." -ForegroundColor Green
                         If (-not [String]::IsNullOrEmpty($ouDescription))
