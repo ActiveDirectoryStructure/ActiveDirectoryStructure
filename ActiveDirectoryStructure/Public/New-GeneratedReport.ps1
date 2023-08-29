@@ -26,13 +26,14 @@ Function New-GeneratedReport
 
         $Script:Document = [XML](Get-Content -Path (Join-Path -Path $Script:XmlRootPath -ChildPath 'Structure.xml'))
         $Structure = ($Document).OrganizationalStructure
-        $Variables = ([XML](Get-Content -Path (Join-Path -Path $Script:XmlRootPath -ChildPath 'Variables.xml'))).Variables
+        $Script:GlobalVariables = ([XML](Get-Content -Path (Join-Path -Path $Script:XmlRootPath -ChildPath 'Variables.xml'))).Variables
 
         $Script:ADDC = $Structure.ADDC
         $Script:ADDN = $Structure.ADDN
 
         $Script:GPOGroups = $Null
         $Script:Permissions = $Null
+        $Script:VariableCache = @{}
 
         Function Get-ContainerXml
         {
@@ -223,17 +224,6 @@ Function New-GeneratedReport
             {
                 $OUTemplate = $Null
                 Write-Verbose "[$($DistinguishedName)] Start $($MyInvocation.InvocationName)"
-
-                If ($Null -eq $Script:VariableCache)
-                {
-                    $Script:VariableCache = @{}
-                }
-
-                If (-not $Template.IsPresent -and $Script:VariableCache.Contains($DistinguishedName))
-                {
-                    $Variables = $Script:VariableCache[$DistinguishedName]
-                    Write-Verbose "[$($OUDistinguishedName)] Variables overwritten from cache"
-                }
             }
 
             Process
@@ -273,6 +263,24 @@ Function New-GeneratedReport
 
                 $OUDistinguishedName = "OU=$($ouName),$($DistinguishedName)"
                 Write-Verbose "[$($OUDistinguishedName)] Processing OU"
+ 
+                If ($Template.IsPresent -and $($Variables.OuterXml) -ne $Script:GlobalVariables.OuterXml)
+                {
+                    If (-not $Script:VariableCache.Contains($OUDistinguishedName))
+                    {
+                        $Script:VariableCache.Add($OUDistinguishedName, $Variables)
+                        Write-Verbose "[$($OUDistinguishedName)] Cached variable -> '$($Variables.OuterXml)'"
+                    }
+                    ElseIf ($Script:VariableCache[$OUDistinguishedName].OuterXml -ne $($Variables.OuterXml))
+                    {
+                        Write-Error "[$($OUDistinguishedName)] was processed multiple times with different variables '$($Script:VariableCache[$OUDistinguishedName].OuterXml)' vs '$($Variables.OuterXml)'"
+                    }
+                }
+                ElseIf (-not $Template.IsPresent -and $Script:VariableCache.Contains($OUDistinguishedName))
+                {
+                    $Variables = $Script:VariableCache[$OUDistinguishedName]
+                    Write-Verbose "[$($OUDistinguishedName)] Variables overwritten from cache -> '$($Variables.OuterXml)'"
+                }
 
                 If (-not (Test-ADSOUFilter -DistinguishedName $OUDistinguishedName -OUStructure $OrganizationalUnitStructure -Variables $Variables))
                 {
@@ -299,10 +307,6 @@ Function New-GeneratedReport
                             ForEach ($variable in $content)
                             {
                                 Write-Verbose "[$($OUDistinguishedName)] Processing Variable $($variable.Value)"
-                                If (-not $Script:VariableCache.Contains($OUDistinguishedName))
-                                {
-                                    $Script:VariableCache.Add($OUDistinguishedName, $variable)
-                                }
                                 $copy = $innerLoop.CloneNode($True)
                                 Get-OrganizationalUnitXml -OrganizationalUnitStructure $copy -Variables $variable -DistinguishedName $OUDistinguishedName -Template:$($Template.IsPresent)
                                 $newElement = $innerLoop.OwnerDocument.CreateNode('element', 'OU', '')
@@ -393,8 +397,8 @@ Function New-GeneratedReport
 
         ForEach ($topLevelOU in $Structure.OU)
         {
-            Get-OrganizationalUnitXml -OrganizationalUnitStructure $topLevelOU -Variables $Variables -DistinguishedName $Script:ADDN -Template
-            Get-OrganizationalUnitXml -OrganizationalUnitStructure $topLevelOU -Variables $Variables -DistinguishedName $Script:ADDN
+            Get-OrganizationalUnitXml -OrganizationalUnitStructure $topLevelOU -Variables $Script:GlobalVariables -DistinguishedName $Script:ADDN -Template
+            Get-OrganizationalUnitXml -OrganizationalUnitStructure $topLevelOU -Variables $Script:GlobalVariables -DistinguishedName $Script:ADDN
         }
 
         $Script:Document.Save($OutputPath) | Out-Null
