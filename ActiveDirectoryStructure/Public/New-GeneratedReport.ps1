@@ -1,4 +1,4 @@
-Function New-ADSGeneratedReport
+Function New-GeneratedReport
 {
     Param
     (

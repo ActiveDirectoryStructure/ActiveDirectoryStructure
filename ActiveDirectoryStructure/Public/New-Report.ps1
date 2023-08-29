@@ -1,4 +1,4 @@
-Function New-ADSReport
+Function New-Report
 {
     Param
     (
