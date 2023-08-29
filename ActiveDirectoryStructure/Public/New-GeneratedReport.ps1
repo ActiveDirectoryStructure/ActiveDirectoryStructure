@@ -223,6 +223,17 @@ Function New-GeneratedReport
             {
                 $OUTemplate = $Null
                 Write-Verbose "[$($DistinguishedName)] Start $($MyInvocation.InvocationName)"
+
+                If ($Null -eq $Script:VariableCache)
+                {
+                    $Script:VariableCache = @{}
+                }
+
+                If (-not $Template.IsPresent -and $Script:VariableCache.Contains($DistinguishedName))
+                {
+                    $Variables = $Script:VariableCache[$DistinguishedName]
+                    Write-Verbose "[$($OUDistinguishedName)] Variables overwritten from cache"
+                }
             }
 
             Process
@@ -261,10 +272,11 @@ Function New-GeneratedReport
                 }
 
                 $OUDistinguishedName = "OU=$($ouName),$($DistinguishedName)"
-                Write-Verbose "[$($OUDistinguishedName)] Processing"
+                Write-Verbose "[$($OUDistinguishedName)] Processing OU"
 
-                If (-not (Test-ADSOUFilter -DistinguishedName $DistinguishedName -OUStructure $OrganizationalUnitStructure -Variables $Variables))
+                If (-not (Test-ADSOUFilter -DistinguishedName $OUDistinguishedName -OUStructure $OrganizationalUnitStructure -Variables $Variables))
                 {
+                    Write-Verbose "[$($OUDistinguishedName)] OU denied by filtering. Removing"
                     $OrganizationalUnitStructure.ParentNode.RemoveChild($OrganizationalUnitStructure) | Out-Null
                     Continue
                 }
@@ -287,6 +299,10 @@ Function New-GeneratedReport
                             ForEach ($variable in $content)
                             {
                                 Write-Verbose "[$($OUDistinguishedName)] Processing Variable $($variable.Value)"
+                                If (-not $Script:VariableCache.Contains($OUDistinguishedName))
+                                {
+                                    $Script:VariableCache.Add($OUDistinguishedName, $variable)
+                                }
                                 $copy = $innerLoop.CloneNode($True)
                                 Get-OrganizationalUnitXml -OrganizationalUnitStructure $copy -Variables $variable -DistinguishedName $OUDistinguishedName -Template:$($Template.IsPresent)
                                 $newElement = $innerLoop.OwnerDocument.CreateNode('element', 'OU', '')
