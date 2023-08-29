@@ -20,7 +20,7 @@ Function Get-ADSIdentityDistinguishedName
         $IdentityDistinguishedName = $($permission.Identity)
         If ($IdentityDistinguishedName.Contains('DC='))
         {
-            Write-Error "[$($DistinguishedName)] Identity reference cannot contain DC of domain (e.g. DC=hoval,DC=ch). Found: '$($IdentityDistinguishedName)'"
+            Write-Error "[$($DistinguishedName)] Identity reference cannot contain DC of domain (e.g. DC=Contoso,DC=ch). Found: '$($IdentityDistinguishedName)'"
         }
         $IdentityDistinguishedName = "$($IdentityDistinguishedName),$($Script:ADDN)"
         Write-Verbose "[$($DistinguishedName)] Generated '$($IdentityDistinguishedName)'"
