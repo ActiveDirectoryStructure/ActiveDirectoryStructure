@@ -138,14 +138,14 @@ Function Confirm-ADSOrganizationalStructure
                     Confirm-ADSOrganizationalStructureGPO -DistinguishedName $ouDistinguishedName -Variables $Variables -OUStructure $OUStructure -WhatIf:$WhatIfPreference
                 }
 
-                If (-not $NoACL.IsPresent)
+                If (-not $NoACL.IsPresent -and -not $CreateOnly.IsPresent)
                 {
                     Confirm-ADSOrganizationalStructureACL -DistinguishedName $ouDistinguishedName -Variables $Variables -Structure $OUStructure -WhatIf:$WhatIfPreference
                 }
             }
 
             # Process Groups
-            If ($Null -ne $OUStructure.Group)
+            If (-not $CreateOnly.IsPresent -and $Null -ne $OUStructure.Group)
             {
                 ForEach ($group in $OUStructure.Group)
                 {
