@@ -6,6 +6,8 @@ Function Confirm-ADSContainer
         [Parameter(Mandatory = $True)]
         [String] $DistinguishedName,
         [Parameter(Mandatory = $True)]
+        [String] $ADServer,
+        [Parameter(Mandatory = $True)]
         $ContainerStructure,
 
         [Switch] $ACLOnly,
@@ -39,7 +41,7 @@ Function Confirm-ADSContainer
 
         $ContainerDistinguishedName = "CN=$($ContainerName),$($DistinguishedName)"
 
-        $Container = Get-ADObject -Identity $ContainerDistinguishedName -ErrorAction SilentlyContinue
+        $Container = Get-ADObject -Identity $ContainerDistinguishedName -ErrorAction SilentlyContinue -Server $ADServer
         If ($Null -eq $Container)
         {
             Write-Error "[$($DistinguishedName)] Expected Container at '$($ContainerDistinguishedName)' but found nothing"
@@ -48,7 +50,7 @@ Function Confirm-ADSContainer
         {
             If (-not $NoACL.IsPresent)
             {
-                Confirm-ADSOrganizationalStructureACL -DistinguishedName $ContainerDistinguishedName -Structure $ContainerStructure -WhatIf:$WhatIfPreference
+                Confirm-ADSOrganizationalStructureACL -DistinguishedName $ContainerDistinguishedName -Structure $ContainerStructure -WhatIf:$WhatIfPreference -ADServer $ADServer
             }
         }
 
@@ -58,7 +60,7 @@ Function Confirm-ADSContainer
             ForEach ($group in $ContainerStructure.Group)
             {
                 $groupDistinguishedName = Get-GroupDistinguishedName -Group $group
-                Confirm-ADSOrganizationalStructureACL -DistinguishedName $groupDistinguishedName -Variables $Variables -Structure $group -WhatIf:$WhatIfPreference
+                Confirm-ADSOrganizationalStructureACL -DistinguishedName $groupDistinguishedName -Variables $Variables -Structure $group -WhatIf:$WhatIfPreference -ADServer $ADServer
             }
         }
 
@@ -67,6 +69,7 @@ Function Confirm-ADSContainer
             ForEach ($subContainer in $ContainerStructure.Container)
             {
                 $Parameters = @{
+                    ADServer           = $ADServer
                     DistinguishedName  = $ContainerDistinguishedName
                     ContainerStructure = $subContainer
                     ACLOnly            = $ACLOnly

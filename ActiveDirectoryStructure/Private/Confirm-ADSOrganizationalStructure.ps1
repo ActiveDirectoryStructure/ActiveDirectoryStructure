@@ -6,6 +6,8 @@ Function Confirm-ADSOrganizationalStructure
         [Parameter(Mandatory = $True)]
         [String] $DistinguishedName,
         [Parameter(Mandatory = $True)]
+        [String] $ADServer,
+        [Parameter(Mandatory = $True)]
         $OUStructure,
         [Parameter(Mandatory = $True)]
         $Variables,
@@ -82,7 +84,7 @@ Function Confirm-ADSOrganizationalStructure
                 }
             }
 
-            $ou = Get-ADOrganizationalUnit -Filter "distinguishedName -eq '$ouDistinguishedName'" -Properties Description
+            $ou = Get-ADOrganizationalUnit -Filter "distinguishedName -eq '$ouDistinguishedName'" -Properties Description -Server $ADServer
             If (-not $DeleteOnly.IsPresent -and -not $ACLOnly.IsPresent -and $Null -eq $ou)
             {
                 If (([String]::IsNullOrEmpty($OUStructure.Filter) -or $Variables.$($OUStructure.Filter) -eq $True) -and [String]::IsNullOrEmpty($OUStructure.Optional))
@@ -92,11 +94,11 @@ Function Confirm-ADSOrganizationalStructure
                         Write-Host "[$($DistinguishedName)] $($ouName) is missing. Creating ..." -ForegroundColor Green
                         If (-not [String]::IsNullOrEmpty($ouDescription))
                         {
-                            $ou = New-ADOrganizationalUnit -Name $ouName -Path $DistinguishedName -Description $($ouDescription) -PassThru
+                            $ou = New-ADOrganizationalUnit -Name $ouName -Path $DistinguishedName -Description $($ouDescription) -PassThru -Server $ADServer
                         }
                         Else
                         {
-                            $ou = New-ADOrganizationalUnit -Name $ouName -Path $DistinguishedName -PassThru
+                            $ou = New-ADOrganizationalUnit -Name $ouName -Path $DistinguishedName -PassThru -Server $ADServer
                         }
                         $CorrectOUs.Value += $ouDistinguishedName
                     }
@@ -117,7 +119,7 @@ Function Confirm-ADSOrganizationalStructure
                         Write-Verbose "[$($DistinguishedName)] $($ouDistinguishedName) description is '$($ouDescription)' instead of '$($ou.Description)'"
                         If ($PSCmdlet.ShouldProcess("-Identity $ou -Description $($ouDescription)", 'Set-ADOrganizationalUnit'))
                         {
-                            Set-ADOrganizationalUnit -Identity $ou -Description $($ouDescription) | Out-Null
+                            Set-ADOrganizationalUnit -Identity $ou -Description $($ouDescription) -Server $ADServer | Out-Null
                         }
                     }
                     # OU exists and should exist
@@ -128,19 +130,19 @@ Function Confirm-ADSOrganizationalStructure
 
             If ($Null -eq $AllOUs -and $Null -ne $ou)
             {
-                $AllOUs = Get-ADOrganizationalUnit -Filter * -SearchBase $ouDistinguishedName | Select-Object -ExpandProperty distinguishedName
+                $AllOUs = Get-ADOrganizationalUnit -Filter * -SearchBase $ouDistinguishedName -Server $ADServer | Select-Object -ExpandProperty distinguishedName
             }
 
             If ($Null -ne $ou)
             {
                 If (-not $ACLOnly.IsPresent)
                 {
-                    Confirm-ADSOrganizationalStructureGPO -DistinguishedName $ouDistinguishedName -Variables $Variables -OUStructure $OUStructure -WhatIf:$WhatIfPreference
+                    Confirm-ADSOrganizationalStructureGPO -DistinguishedName $ouDistinguishedName -Variables $Variables -OUStructure $OUStructure -WhatIf:$WhatIfPreference -ADServer $ADServer
                 }
 
                 If (-not $NoACL.IsPresent -and -not $CreateOnly.IsPresent)
                 {
-                    Confirm-ADSOrganizationalStructureACL -DistinguishedName $ouDistinguishedName -Variables $Variables -Structure $OUStructure -WhatIf:$WhatIfPreference
+                    Confirm-ADSOrganizationalStructureACL -DistinguishedName $ouDistinguishedName -Variables $Variables -Structure $OUStructure -WhatIf:$WhatIfPreference -ADServer $ADServer
                 }
             }
 
@@ -150,7 +152,7 @@ Function Confirm-ADSOrganizationalStructure
                 ForEach ($group in $OUStructure.Group)
                 {
                     $groupDistinguishedName = Get-GroupDistinguishedName -Group $group
-                    Confirm-ADSOrganizationalStructureACL -DistinguishedName $groupDistinguishedName -Variables $Variables -Structure $group -WhatIf:$WhatIfPreference
+                    Confirm-ADSOrganizationalStructureACL -DistinguishedName $groupDistinguishedName -Variables $Variables -Structure $group -WhatIf:$WhatIfPreference -ADServer $ADServer
                 }
             }
 
@@ -160,6 +162,7 @@ Function Confirm-ADSOrganizationalStructure
                 ForEach ($ou in $OUStructure.OU)
                 {
                     $Parameters = @{
+                        ADServer          = $ADServer
                         DistinguishedName = $ouDistinguishedName
                         OUStructure       = $ou
                         Variables         = $Variables
@@ -193,6 +196,7 @@ Function Confirm-ADSOrganizationalStructure
                     {
                         Write-Verbose "[$($DistinguishedName)] Processing Variable $($variable.Value)"
                         $Parameters = @{
+                            ADServer          = $ADServer
                             DistinguishedName = $ouDistinguishedName
                             OUStructure       = $innerLoop
                             Variables         = $variable
@@ -224,6 +228,7 @@ Function Confirm-ADSOrganizationalStructure
             ForEach ($ou in $OUTemplate)
             {
                 $Parameters = @{
+                    ADServer          = $ADServer
                     DistinguishedName = $DistinguishedName
                     OUStructure       = $ou
                     Variables         = $Variables

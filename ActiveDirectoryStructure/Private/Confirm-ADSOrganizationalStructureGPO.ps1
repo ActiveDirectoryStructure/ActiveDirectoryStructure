@@ -6,6 +6,8 @@ Function Confirm-ADSOrganizationalStructureGPO
         [Parameter(Mandatory = $True)]
         [String] $DistinguishedName,
         [Parameter(Mandatory = $True)]
+        [String] $ADServer,
+        [Parameter(Mandatory = $True)]
         $OUStructure,
         [Parameter(Mandatory = $True)]
         $Variables
@@ -44,7 +46,7 @@ Function Confirm-ADSOrganizationalStructureGPO
         }
 
         # BlockInheritance
-        $Inheritance = Get-GPInheritance -Target $DistinguishedName
+        $Inheritance = Get-GPInheritance -Target $DistinguishedName -Server $ADServer
         $RequstedInheritanceStatus = $False
         If (-not [String]::IsNullOrEmpty($OUStructure.BlockInheritance))
         {
@@ -56,11 +58,11 @@ Function Confirm-ADSOrganizationalStructureGPO
             Write-Verbose "[$($DistinguishedName)] Setting inheritance to '$($RequstedInheritanceStatus)'"
             If ($RequstedInheritanceStatus)
             {
-                Set-GPInheritance -Target $DistinguishedName -IsBlocked 'Yes' -Confirm:$False | Out-Null
+                Set-GPInheritance -Target $DistinguishedName -IsBlocked 'Yes' -Confirm:$False -Server $ADServer | Out-Null
             }
             Else
             {
-                Set-GPInheritance -Target $DistinguishedName -IsBlocked 'No' -Confirm:$False | Out-Null
+                Set-GPInheritance -Target $DistinguishedName -IsBlocked 'No' -Confirm:$False -Server $ADServer | Out-Null
             }
         }
 
@@ -121,9 +123,9 @@ Function Confirm-ADSOrganizationalStructureGPO
                 }
 
                 Write-Host "[$($DistinguishedName)] Linking '$($name)' to '$($DistinguishedName)'" -ForegroundColor Green
-                If ($PSCmdlet.ShouldProcess("-Name '$($name)' -Target '$($DistinguishedName)' -Order $($gpo.Order)", 'Set-GPLink'))
+                If ($PSCmdlet.ShouldProcess("-Name '$($name)' -Target '$($DistinguishedName)' -Order $($gpo.Order)", 'New-GPLink'))
                 {
-                    New-GPLink -Name $($name) -Target $($DistinguishedName) -Order $($gpo.Order) | Out-Null
+                    New-GPLink -Name $($name) -Target $($DistinguishedName) -Order $($gpo.Order) -Server $ADServer | Out-Null
                 }
             }
             # GPO is already linked but order is wrong
@@ -139,7 +141,7 @@ Function Confirm-ADSOrganizationalStructureGPO
 
                 If ($PSCmdlet.ShouldProcess("-Name '$($name)' -Target '$($DistinguishedName)' -Order $($gpo.Order)", 'Set-GPLink'))
                 {
-                    Set-GPLink -Name $($name) -Target $($DistinguishedName) -Order $($gpo.Order) | Out-Null
+                    Set-GPLink -Name $($name) -Target $($DistinguishedName) -Order $($gpo.Order) -Server $ADServer | Out-Null
                 }
             }
 
@@ -162,7 +164,7 @@ Function Confirm-ADSOrganizationalStructureGPO
                 {
                     If ($Force -or $PSCmdlet.ShouldContinue("Delete link of GPO '$($gpo.DisplayName)' from '$($DistinguishedName)'", "Are you sure you want to delete link of GPO '$($gpo.DisplayName)' from '$($DistinguishedName)'?", $False, [Ref]$YesToAllGPLink, [Ref]$NoToAllGPLink))
                     {
-                        Remove-GPLink -Name $($gpo.DisplayName) -Target $($DistinguishedName) | Out-Null
+                        Remove-GPLink -Name $($gpo.DisplayName) -Target $($DistinguishedName) -Server $ADServer | Out-Null
                     }
                 }
             }

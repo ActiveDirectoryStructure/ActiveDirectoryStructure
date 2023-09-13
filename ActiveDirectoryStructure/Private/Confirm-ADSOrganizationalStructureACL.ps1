@@ -6,6 +6,8 @@ Function Confirm-ADSOrganizationalStructureACL
         [Parameter(Mandatory = $True)]
         [String] $DistinguishedName,
         [Parameter(Mandatory = $True)]
+        [String] $ADServer,
+        [Parameter(Mandatory = $True)]
         $Structure,
         [Parameter(Mandatory = $False)]
         $Variables
