@@ -64,7 +64,7 @@ Function Confirm-ADSOrganizationalStructureACL
             Write-Verbose "[$($DistinguishedName)]->$($permission.Identity) identified as '$($identity.Value)' with resolved name of '$($identityDistinguishedName)'"
 
             $permissions = Get-ADSPermissions -GroupName $($permission.Permission)
-            Write-Verbose "[$($DistinguishedName)]->$($permission.Identity): processing $($newPermission.AccessRules.AccessRule.Length) permissions"
+            Write-Verbose "[$($DistinguishedName)]->$($permission.Identity): processing $($permissions.AccessRules.AccessRule.Length) permissions"
 
             ForEach ($newPermission in $permissions.AccessRules.AccessRule)
             {
