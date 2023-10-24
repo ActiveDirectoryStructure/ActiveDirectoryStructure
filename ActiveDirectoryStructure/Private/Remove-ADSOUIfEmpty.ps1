@@ -32,7 +32,7 @@ Function Remove-ADSOUIfEmpty
         {
             If (-not $SkipOUDelete.IsPresent)
             {
-                Write-Host 'Deleting will continue as OU is empty !' -ForegroundColor Red
+                Write-Host 'Deleting will continue as OU is empty!' -ForegroundColor Red
                 If ($PSCmdlet.ShouldProcess($OUDistinguishedName, 'Remove-ADOrganizationalUnit'))
                 {
                     If ($Force -or $PSCmdlet.ShouldContinue("Delete OU '$($OUDistinguishedName)'", "Are you sure you want to delete the OU '$($OUDistinguishedName)'", $True, [Ref]$YesToAllOU, [Ref]$NoToAllOU))
@@ -44,7 +44,7 @@ Function Remove-ADSOUIfEmpty
             }
             Else
             {
-                Write-Host 'Deleting will NOT continue -SkipOUDelete is set !' -ForegroundColor Green
+                Write-Host 'Deleting will NOT continue as -SkipOUDelete is set!' -ForegroundColor Green
             }
         }
         Else

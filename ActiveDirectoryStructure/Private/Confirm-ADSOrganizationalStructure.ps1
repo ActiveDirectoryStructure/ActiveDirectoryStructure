@@ -174,6 +174,12 @@ Function Confirm-ADSOrganizationalStructure
                         NoACL             = $NoACL
                         WhatIf            = $WhatIfPreference
                     }
+                    
+                    If ($OUStructure.IgnoreSubOUs)
+                    {
+                        $ou.IgnoreSubOUs = $True
+                    }
+                        
                     Confirm-ADSOrganizationalStructure @Parameters
                 }
             }
@@ -208,6 +214,11 @@ Function Confirm-ADSOrganizationalStructure
                             NoACL             = $NoACL
                             WhatIf            = $WhatIfPreference
                         }
+
+                        If ($OUStructure.IgnoreSubOUs)
+                        {
+                            $ou.IgnoreSubOUs = $True
+                        }
         
                         Confirm-ADSOrganizationalStructure @Parameters
                     }
@@ -239,6 +250,11 @@ Function Confirm-ADSOrganizationalStructure
                     ACLOnly           = $ACLOnly
                     NoACL             = $NoACL
                     WhatIf            = $WhatIfPreference
+                }
+
+                If ($OUStructure.IgnoreSubOUs)
+                {
+                    $ou.IgnoreSubOUs = $True
                 }
 
                 Confirm-ADSOrganizationalStructure @Parameters
