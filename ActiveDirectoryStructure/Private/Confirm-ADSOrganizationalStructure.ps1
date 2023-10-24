@@ -66,7 +66,7 @@ Function Confirm-ADSOrganizationalStructure
         {
             Write-Verbose "Fetching '$($ouDistinguishedName)' ..."
             $ProcessedCorrectOUs = New-Object -TypeName 'System.Collections.Generic.List[System.String]'
-            $ProcessedCorrectOUs += $ouDistinguishedName
+            $ProcessedCorrectOUs.Add($ouDistinguishedName)
             $CorrectOUs = ([Ref]$ProcessedCorrectOUs)
         }
 
@@ -100,14 +100,14 @@ Function Confirm-ADSOrganizationalStructure
                         {
                             $ou = New-ADOrganizationalUnit -Name $ouName -Path $DistinguishedName -PassThru -Server $ADServer
                         }
-                        $CorrectOUs.Value += $ouDistinguishedName
+                        $CorrectOUs.Value.Add($ouDistinguishedName)
                     }
                 }
                 ElseIf ($True -eq $OUStructure.Optional)
                 {
                     # OU is marked as optional. Do not force created it but add it as a valid OU
                     Write-Verbose "[$($DistinguishedName)] $($ouDistinguishedName) not exist and is optional. Not creating"
-                    $CorrectOUs.Value += $ouDistinguishedName
+                    $CorrectOUs.Value.Add($ouDistinguishedName)
                 }
             }
             ElseIf (-not $CreateOnly.IsPresent -and -not $ACLOnly.IsPresent)
@@ -124,7 +124,7 @@ Function Confirm-ADSOrganizationalStructure
                     }
                     # OU exists and should exist
                     Write-Verbose "[$($DistinguishedName)] $($ouDistinguishedName) should exist"
-                    $CorrectOUs.Value += $ouDistinguishedName
+                    $CorrectOUs.Value.Add($ouDistinguishedName)
                 }
             }
 
@@ -257,6 +257,13 @@ Function Confirm-ADSOrganizationalStructure
             {
                 ForEach ($ou in $additionalOUs)
                 {
+                    If ($OUStructure.IgnoreSubOUs)
+                    {
+                        Write-Host "[$($DistinguishedName)] Ignoring OU '$($ou)' since IgnoreSubOUs is set" -ForegroundColor Yellow
+                        $CorrectOUs.Value.Remove($ou) | Out-Null
+                        Continue
+                    }
+
                     Remove-ADSOUIfEmpty -OUDistinguishedName $ou -WhatIf:$WhatIfPreference
                 }
             }
