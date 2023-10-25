@@ -64,7 +64,7 @@ Function Confirm-ADSOrganizationalStructure
 
         If ($Null -eq $CorrectOUs)
         {
-            Write-Verbose "Fetching '$($ouDistinguishedName)' ..."
+            Write-Verbose "[$($DistinguishedName)] Fetching '$($ouDistinguishedName)' ..."
             $ProcessedCorrectOUs = New-Object -TypeName 'System.Collections.Generic.List[System.String]'
             $ProcessedCorrectOUs.Add($ouDistinguishedName)
             $CorrectOUs = ([Ref]$ProcessedCorrectOUs)
