@@ -87,7 +87,7 @@ Function Confirm-ADSOrganizationalStructure
             $ou = Get-ADOrganizationalUnit -Filter "distinguishedName -eq '$ouDistinguishedName'" -Properties Description -Server $ADServer
             If (-not $DeleteOnly.IsPresent -and -not $ACLOnly.IsPresent -and $Null -eq $ou)
             {
-                If (([String]::IsNullOrEmpty($OUStructure.Filter) -or $Variables.$($OUStructure.Filter) -eq $True) -and [String]::IsNullOrEmpty($OUStructure.Optional))
+                If ((Test-ADSOUFilter -DistinguishedName $DistinguishedName -OUStructure $OUStructure -Variables $Variables) -and [String]::IsNullOrEmpty($OUStructure.Optional))
                 {
                     If ($PSCmdlet.ShouldProcess("-Name $ouName -Path $DistinguishedName -PassThru", 'New-ADOrganizationalUnit'))
                     {
