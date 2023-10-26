@@ -78,6 +78,10 @@ Function Confirm-ADSOrganizationalStructureGPO
             {
                 Continue
             }
+            ElseIf (-not (Test-ADSOUFilter -DistinguishedName $DistinguishedName -OUStructure $gpo -Variables $Variables))
+            {
+                Continue
+            }
 
             $name = $gpo.DisplayName
             If ([String]::IsNullOrEmpty($name))
