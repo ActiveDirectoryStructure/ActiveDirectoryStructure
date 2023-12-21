@@ -177,9 +177,9 @@ Function Confirm-ADSOrganizationalStructure
                     
                     If ($OUStructure.IgnoreSubOUs)
                     {
-                        $ou.IgnoreSubOUs = $True
+                        $ou.SetAttribute('IgnoreSubOUs', $True) | Out-Null
                     }
-                        
+                    
                     Confirm-ADSOrganizationalStructure @Parameters
                 }
             }
@@ -217,7 +217,7 @@ Function Confirm-ADSOrganizationalStructure
 
                         If ($OUStructure.IgnoreSubOUs)
                         {
-                            $ou.IgnoreSubOUs = $True
+                            $innerLoop.SetAttribute('IgnoreSubOUs', $True) | Out-Null
                         }
         
                         Confirm-ADSOrganizationalStructure @Parameters
@@ -254,7 +254,7 @@ Function Confirm-ADSOrganizationalStructure
 
                 If ($OUStructure.IgnoreSubOUs)
                 {
-                    $ou.IgnoreSubOUs = $True
+                    $ou.SetAttribute('IgnoreSubOUs', $True) | Out-Null
                 }
 
                 Confirm-ADSOrganizationalStructure @Parameters
