@@ -291,11 +291,6 @@ Function New-GeneratedReport
 
                 If ($Null -ne $OrganizationalUnitStructure.ForEach)
                 {
-                    If (-not $Template.IsPresent)
-                    {
-                        Write-Error "[$($DistinguishedName)] Found ForEach in non templating mode ($($OrganizationalUnitStructure.ForEach))"
-                    }
-
                     Write-Verbose "[$($OUDistinguishedName)] Processing ForEach ..."
             
                     ForEach ($innerLoop in $OrganizationalUnitStructure.ForEach)
